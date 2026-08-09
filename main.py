@@ -15,8 +15,14 @@ endpoint = f"https://www.nepalstock.com/api/nots/nepse-data/today-price?page={pa
 refresh_endpoint = ""
 fetch_token_endpint = "https://www.nepalstock.com/api/authenticate/prove"
 
+access_token: str | None = None
+refresh_token: str | None = None
 
-def get_access_and_refresh_token():
+
+def set_access_and_refresh_token():
+    global access_token
+    global refresh_token
+
     try:
         res: Response = requests.get(
             url=fetch_token_endpint,
@@ -28,10 +34,8 @@ def get_access_and_refresh_token():
 
         data = res.json()
 
-        return {
-            "access_token": data.get("accessToken"),
-            "refresh_token": data.get("refreshToken"),
-        }
+        access_token = data.get("accessToken")
+        refresh_token = data.get("refreshToken")
 
     except HTTPError as http_err:
         print(f"Http error occured: {http_err}")
@@ -42,4 +46,5 @@ def get_access_and_refresh_token():
         raise AccessTokenFetchError() from e
 
 
-print(get_access_and_refresh_token())
+set_access_and_refresh_token()
+print(access_token)
