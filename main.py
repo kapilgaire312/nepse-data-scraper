@@ -5,6 +5,7 @@ from requests import HTTPError, Response
 
 from dummy_data_arr import dummyData
 from exceptions import AccessTokenFetchError
+from utils import get_full_headers
 
 page = 1
 size = 20
@@ -87,13 +88,9 @@ def fetch_stock_data(size=20, offset=0, market_date=today_date):
             else:
                 raise Exception("Cannot set the accessToken")
 
-        # construct the authorization header
-        auth_header = {
-            "authorization": f"Salter o{access_token}",
-        }
 
         # full header
-        full_header = default_headers | auth_header
+        full_header = get_full_headers(default_headers=default_headers, access_token=access_token) 
 
         res = requests.post(endpoint, headers=full_header)
 
@@ -104,7 +101,13 @@ def fetch_stock_data(size=20, offset=0, market_date=today_date):
         print("error coccures", e)
 
 
+def get_market_open_info():
+
+
+
 def set_client_id():
+    global client_id
+
     # get todays day int value
     day = date.today().day
     dummyId = market_id
@@ -113,7 +116,6 @@ def set_client_id():
     l = dummyData[dummyId] + dummyId + 2 * day
 
     selector: int = 1 if (l % 10 < 5) else 3
-    print(selector)
 
     id = l + access_tokens[selector] * day - access_tokens[selector - 1]
-    print(id)
+    client_id = id
