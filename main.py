@@ -1,4 +1,5 @@
 from datetime import date
+from time import sleep
 
 import requests
 from requests import HTTPError, Response
@@ -11,9 +12,10 @@ page = 1
 size = 20
 market_date = "2026-08-05"
 default_headers = {
-    "accept": "application/json, text/plain, */*",
-    "content-type": "application/json",
-    "user-agent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36",
+    "Accept": "application/json, text/plain, */*",
+    "Content-Type": "application/json",
+    "User-Agent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36",
+    "Referer": "https://www.nepalstock.com/today-price",
 }
 refresh_endpoint = ""
 fetch_token_endpint = "https://www.nepalstock.com/api/authenticate/prove"
@@ -64,6 +66,9 @@ def set_access_and_refresh_token():
         access_tokens.append(data.get("salt4"))
         access_tokens.append(data.get("salt5"))
 
+        sleep(2)
+        get_market_open_info()
+
     except HTTPError as http_err:
         print(f"Http error occured: {http_err}")
         raise AccessTokenFetchError() from http_err
@@ -88,9 +93,10 @@ def fetch_stock_data(size=20, offset=0, market_date=today_date):
             else:
                 raise Exception("Cannot set the accessToken")
 
-
         # full header
-        full_header = get_full_headers(default_headers=default_headers, access_token=access_token) 
+        full_header = get_full_headers(
+            default_headers=default_headers, access_token=access_token
+        )
 
         res = requests.post(endpoint, headers=full_header)
 
@@ -102,7 +108,49 @@ def fetch_stock_data(size=20, offset=0, market_date=today_date):
 
 
 def get_market_open_info():
+    market_open_endpoint = "https://www.nepalstock.com/api/nots/nepse-data/market-open"
+    if access_token is None:
+        raise Exception("Access token is not set!")
 
+    try:
+        # full headers
+        full_headers = get_full_headers(
+            default_headers=default_headers, access_token=access_token
+        )
+
+        print(full_headers)
+
+        # send request
+        res = requests.get(market_open_endpoint, headers=full_headers)
+
+        res.raise_for_status()
+        print(res.status_code)
+        print(res.text)
+
+        url = "https://www.nepalstock.com/api/nots/nepse-data/market-open"
+
+        token = "Salter eyJlbmMiOiJBMTI4Q0JDLUhTMjU2IiwiYWxnIjoiZGlyIn0..UXok7b1RiBvfmf1BZSCiWw.NAQZ-t35YdCoT4bRE6tA9GH1fCaJEAr8NxIfx1Sto4Hpg3My5CJcH0LmPEfdBujFrsceMQFaYKEwzh7NSYyLWjMc3xb8l7scjxkfqPGSWD2LB36LssrIPUl_YvfkiRCo7Uh_VgJ-7f6a22_nCiimlA.AJ6YK6TpW1iHC0A8M9YFZg"
+
+        headers = {
+            "Authorization": token,
+            "Accept": "application/json, text/plain, */*",
+            "Referer": "https://www.nepalstock.com/today-price",
+            "Origin": "https://www.nepalstock.com",
+            "User-Agent": "Mozilla/5.0",
+        }
+
+        response = requests.get(url, headers=headers)
+
+        print("Status:", response.status_code)
+        print("Response:")
+
+        try:
+            print(response.json())
+        except ValueError:
+            print(response.text)
+
+    except Exception as e:
+        print(e)
 
 
 def set_client_id():
@@ -119,3 +167,7 @@ def set_client_id():
 
     id = l + access_tokens[selector] * day - access_tokens[selector - 1]
     client_id = id
+
+
+# get_market_open_info()
+set_access_and_refresh_token()
