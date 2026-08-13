@@ -6,6 +6,7 @@ from requests import HTTPError, Response
 
 from dummy_data_arr import dummyData
 from exceptions import AccessTokenFetchError
+from modify_access_token import modify_access_token
 from utils import get_full_headers
 
 page = 1
@@ -55,7 +56,7 @@ def set_access_and_refresh_token():
         data = res.json()
 
         # seed access_token adn refresh_token
-        access_token = data.get("accessToken", None)
+        original_access_token = data.get("accessToken", None)
         refresh_token = data.get("refreshToken", None)
         print(data)
 
@@ -67,7 +68,11 @@ def set_access_and_refresh_token():
         access_tokens.append(data.get("salt5"))
 
         sleep(2)
-        get_market_open_info()
+        modified_access_token = modify_access_token(
+            original_access_token=original_access_token, salt_values=access_tokens
+        )
+
+        access_token = modified_access_token
 
     except HTTPError as http_err:
         print(f"Http error occured: {http_err}")
@@ -98,10 +103,16 @@ def fetch_stock_data(size=20, offset=0, market_date=today_date):
             default_headers=default_headers, access_token=access_token
         )
 
-        res = requests.post(endpoint, headers=full_header)
+        payload = {"id": client_id}
+        print(payload)
+        res = requests.post(endpoint, headers=full_header, json=payload)
 
         print(res.status_code)
-        # print(res.json())
+        try:
+            print(res.json())
+
+        except ValueError:
+            print(res.text)
 
     except Exception as e:
         print("error coccures", e)
@@ -124,33 +135,22 @@ def get_market_open_info():
         res = requests.get(market_open_endpoint, headers=full_headers)
 
         res.raise_for_status()
-        print(res.status_code)
-        print(res.text)
-
-        url = "https://www.nepalstock.com/api/nots/nepse-data/market-open"
-
-        token = "Salter eyJlbmMiOiJBMTI4Q0JDLUhTMjU2IiwiYWxnIjoiZGlyIn0..UXok7b1RiBvfmf1BZSCiWw.NAQZ-t35YdCoT4bRE6tA9GH1fCaJEAr8NxIfx1Sto4Hpg3My5CJcH0LmPEfdBujFrsceMQFaYKEwzh7NSYyLWjMc3xb8l7scjxkfqPGSWD2LB36LssrIPUl_YvfkiRCo7Uh_VgJ-7f6a22_nCiimlA.AJ6YK6TpW1iHC0A8M9YFZg"
-
-        headers = {
-            "Authorization": token,
-            "Accept": "application/json, text/plain, */*",
-            "Referer": "https://www.nepalstock.com/today-price",
-            "Origin": "https://www.nepalstock.com",
-            "User-Agent": "Mozilla/5.0",
-        }
-
-        response = requests.get(url, headers=headers)
-
-        print("Status:", response.status_code)
-        print("Response:")
 
         try:
-            print(response.json())
+            data = res.json()
+            print(res.json())
+            return data
         except ValueError:
-            print(response.text)
+            print(res.text)
 
     except Exception as e:
         print(e)
+
+
+def set_market_id():
+    global market_id
+    data = get_market_open_info()
+    market_id = data.get("id")
 
 
 def set_client_id():
@@ -171,3 +171,6 @@ def set_client_id():
 
 # get_market_open_info()
 set_access_and_refresh_token()
+set_market_id()
+set_client_id()
+fetch_stock_data()
