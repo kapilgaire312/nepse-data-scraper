@@ -94,3 +94,54 @@ async def get_market_open_info(access_token: str | None):
 
     except Exception as e:
         print(e)
+        raise
+
+
+async def fetch_stock_data(
+    market_date,
+    access_token,
+    client_id,
+    size=20,
+    offset=0,
+):
+    fetch_endpoint = f"https://www.nepalstock.com/api/nots/nepse-data/today-price?page={offset}&size={size}&businessDate={market_date}"
+    try:
+        if access_token is None:
+            raise AccessTokenInvalidError()
+
+        # full header
+        full_headers = get_full_headers(
+            default_headers=default_headers, access_token=access_token
+        )
+
+        payload = {"id": client_id}
+
+        async with httpx.AsyncClient() as client:
+            res = await client.post(
+                url=fetch_endpoint, headers=full_headers, json=payload
+            )
+
+            res.raise_for_status()
+
+            try:
+                return res.json()
+
+            except ValueError as e:
+                print(res.text)
+                raise InvalidServerResponseError() from e
+
+    except httpx.HTTPStatusError as e:
+        status_code = e.response.status_code
+        if status_code == 401:
+            raise AccessTokenInvalidError() from e
+
+        raise
+
+    except InvalidServerResponseError:
+        raise
+
+    except AccessTokenInvalidError:
+        raise
+
+    except Exception as e:
+        print("error coccures", e)

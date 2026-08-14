@@ -3,13 +3,16 @@ from exceptions import (
     AccessTokenInvalidError,
     InvalidServerResponseError,
 )
-from fetch_handlers import get_access_and_refresh_token, get_market_open_info
-from main import access_tokens, market_id
+from fetch_handlers import (
+    fetch_stock_data,
+    get_access_and_refresh_token,
+    get_market_open_info,
+)
 from modify_access_token import modify_access_token
 from utils import calculate_client_id
 
 
-class SessionInfo:
+class NepseSession:
     def __init__(self) -> None:
         # token to be sent to client to verify identity
         self.access_token: str | None = None
@@ -80,3 +83,24 @@ class SessionInfo:
         self.client_id = calculate_client_id(
             market_id=self.market_id, access_tokens=self.access_tokens
         )
+
+    async def get_stocks_data(self, size, offset, market_date):
+        try:
+            data = await fetch_stock_data(
+                access_token=self.access_token,
+                client_id=self.client_id,
+                market_date=market_date,
+                size=size,
+                offset=offset,
+            )
+
+            return data
+
+        except InvalidServerResponseError as e:
+            print(e)
+
+        except AccessTokenInvalidError as e:
+            print(e)
+
+        except Exception as e:
+            print(e)
