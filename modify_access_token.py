@@ -4,7 +4,7 @@ from wasmtime import Engine, Instance, Module, Store
 # the access token sent by the server in the first request is modified in the client.
 # the css.wasm file gives five functions each of which returns a index value.
 # In the client, these functions are executed and the chasracters at those indexes are dropped in the original access token
-def modify_access_token(original_access_token, salt_values):
+def modify_access_token(original_access_token: str, salt_values: list[int]) -> str:
     # create store which holds the engine.
     engine = Engine()
     store = Store(engine)
@@ -59,7 +59,4 @@ def modify_access_token(original_access_token, salt_values):
 
     # join list to get string
     modified_access_token = "".join(original_access_token_list)
-
-    print(modified_access_token)
-
     return modified_access_token
