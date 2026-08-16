@@ -103,7 +103,7 @@ async def fetch_stock_data(
     client_id,
     size=20,
     offset=0,
-):
+) -> list[dict]:
     fetch_endpoint = f"https://www.nepalstock.com/api/nots/nepse-data/today-price?page={offset}&size={size}&businessDate={market_date}"
     try:
         if access_token is None:
@@ -145,3 +145,4 @@ async def fetch_stock_data(
 
     except Exception as e:
         print("error coccures", e)
+        raise

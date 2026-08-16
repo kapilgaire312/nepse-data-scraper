@@ -4,6 +4,7 @@ from exceptions import (
     AccessTokenFetchError,
     AccessTokenInvalidError,
     InvalidServerResponseError,
+    MarketIdInvalidError,
 )
 from fetch_handlers import (
     fetch_stock_data,
@@ -33,55 +34,64 @@ class NepseSession:
         self.market_id: int | None = None
 
     async def set_access_and_refresh_token(self) -> None:
-        try:
-            data = await get_access_and_refresh_token()
+        """
+        Fetches access token, refresh token and access tokens(salt values) and sets them.
 
-            self.refresh_token = data.get("refreshToken")
+        Raises:
+            AccessTokenFetchError : If it fails to fetch the access token,refresh token and salt values
+            InvalidServerResponseError : If the Nepse responded a non json data on 200 status.
 
-            self.access_tokens = [
-                data.get("salt1"),
-                data.get("salt2"),
-                data.get("salt3"),
-                data.get("salt4"),
-                data.get("salt5"),
-            ]
+        """
 
-            # update the access token sent by server with the wasm file
-            original_access_token = data.get("accessToken")
-            updated_access_token = modify_access_token(
-                original_access_token=original_access_token,
-                salt_values=self.access_tokens,
-            )
-            self.access_token = updated_access_token
+        data = await get_access_and_refresh_token()
 
-        except AccessTokenFetchError as e:
-            print("Failed setting the access token.")
-            print("Error occured:", e.__cause__)
+        self.refresh_token = data.get("refreshToken")
 
-        except InvalidServerResponseError as e:
-            print(e)
+        self.access_tokens = [
+            data.get("salt1"),
+            data.get("salt2"),
+            data.get("salt3"),
+            data.get("salt4"),
+            data.get("salt5"),
+        ]
 
-        except Exception as e:
-            print(e)
+        # update the access token sent by server with the wasm file
+        original_access_token = data.get("accessToken")
+        updated_access_token = modify_access_token(
+            original_access_token=original_access_token,
+            salt_values=self.access_tokens,
+        )
+        self.access_token = updated_access_token
 
-    async def set_market_id(self):
-        try:
-            data = await get_market_open_info(self.access_token)
-            self.market_id = data.get("id")
+    async def set_market_id(self) -> None:
+        """
+        Fetches market-open info and sets self.market_id.
 
-        except AccessTokenInvalidError as e:
-            print(e)
+        Raises:
+            AccessTokenInvalidError: If self.access_token is None/invalid/expired.
+            InvalidServerResponseError: If the Nepse responded a non json data on 200 status.
+            httpx.HTTPStatusError : If the Nepse responds with status code 4xx or 5xx.
 
-        except InvalidServerResponseError as e:
-            print(e)
+        """
 
-        except Exception as e:
-            print(e)
+        data = await get_market_open_info(self.access_token)
+        self.market_id = data.get("id")
 
-    def set_client_id(self):
-        if (self.market_id is None) or (not self.access_tokens):
-            print("Market id and/or access_tokens not set.")
-            return
+    def set_client_id(self) -> None:
+        """
+        Calculates client id from market_id, access_token and access_tokens.
+
+        Raises:
+            AccessTokenInvalidError: If self.access_token is None/invalid/expired.
+            MarketIdInvalidError: If the self.market_id is None.
+        """
+
+        if self.access_token is None:
+            raise AccessTokenInvalidError()
+
+        if self.market_id is None:
+            raise MarketIdInvalidError()
+
         # get todays day int value
         day = date.today().day
 
@@ -89,23 +99,31 @@ class NepseSession:
             market_id=self.market_id, access_tokens=self.access_tokens, day=day
         )
 
-    async def get_stocks_data(self, size, offset, market_date):
-        try:
-            data = await fetch_stock_data(
-                access_token=self.access_token,
-                client_id=self.client_id,
-                market_date=market_date,
-                size=size,
-                offset=offset,
-            )
+    async def get_stocks_data(self, size, offset, market_date) -> list[dict]:
+        """
+        Fetches the list of stock data.
 
-            return data
+        Args:
+            size: Number of stocks to fetch.
+            offset:
+            market_date: The date of which the stock data is to be fetched.
 
-        except InvalidServerResponseError as e:
-            print(e)
+        Returns:
+            List of dict containing info of the stocks.
 
-        except AccessTokenInvalidError as e:
-            print(e)
+        Raises:
+            AccessTokenInvalidError: If self.access_token is None/invalid/expired.
+            InvalidServerResponseError: If the Nepse responded a non json data on 200 status.
+            httpx.HTTPStatusError : If the Nepse responds with status code 4xx or 5xx.
 
-        except Exception as e:
-            print(e)
+        """
+
+        data = await fetch_stock_data(
+            access_token=self.access_token,
+            client_id=self.client_id,
+            market_date=market_date,
+            size=size,
+            offset=offset,
+        )
+
+        return data

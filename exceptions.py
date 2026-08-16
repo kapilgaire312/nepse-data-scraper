@@ -14,3 +14,9 @@ class InvalidServerResponseError(Exception):
     """Error raised when server returns 200 but invalid response."""
 
     pass
+
+
+class MarketIdInvalidError(Exception):
+    """Error raised when the market_id is None."""
+
+    pass
