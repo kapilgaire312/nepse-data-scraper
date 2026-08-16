@@ -1,5 +1,3 @@
-from datetime import date
-
 from dummy_data_arr import dummyData
 
 
@@ -14,9 +12,7 @@ def get_full_headers(default_headers, access_token):
     return full_header
 
 
-def calculate_client_id(market_id: int, access_tokens: list[int]) -> int:
-    # get todays day int value
-    day = date.today().day
+def calculate_client_id(market_id: int, access_tokens: list[int], day) -> int:
     dummyId = market_id
 
     # calculating id based on nepalstock website

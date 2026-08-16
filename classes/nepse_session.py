@@ -1,3 +1,5 @@
+from datetime import date
+
 from exceptions import (
     AccessTokenFetchError,
     AccessTokenInvalidError,
@@ -80,8 +82,11 @@ class NepseSession:
         if (self.market_id is None) or (not self.access_tokens):
             print("Market id and/or access_tokens not set.")
             return
+        # get todays day int value
+        day = date.today().day
+
         self.client_id = calculate_client_id(
-            market_id=self.market_id, access_tokens=self.access_tokens
+            market_id=self.market_id, access_tokens=self.access_tokens, day=day
         )
 
     async def get_stocks_data(self, size, offset, market_date):
