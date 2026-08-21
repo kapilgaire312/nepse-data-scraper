@@ -1,7 +1,6 @@
-from typing import TypedDict
-
 import httpx
 
+from classes.token_response import TokenResponse
 from exceptions import (
     AccessTokenFetchError,
     AccessTokenInvalidError,
@@ -15,16 +14,6 @@ default_headers = {
     "User-Agent": "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36",
     "Referer": "https://www.nepalstock.com/today-price",
 }
-
-
-class TokenResponse(TypedDict):
-    accessToken: str
-    refreshToken: str
-    salt1: int
-    salt2: int
-    salt3: int
-    salt4: int
-    salt5: int
 
 
 async def get_access_and_refresh_token() -> TokenResponse:
