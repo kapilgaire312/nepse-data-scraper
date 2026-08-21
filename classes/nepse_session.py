@@ -1,9 +1,8 @@
 from datetime import date
 
+from classes.token_response import TokenResponse
 from exceptions import (
-    AccessTokenFetchError,
     AccessTokenInvalidError,
-    InvalidServerResponseError,
     MarketIdInvalidError,
 )
 from fetch_handlers import (
@@ -12,7 +11,7 @@ from fetch_handlers import (
     get_market_open_info,
 )
 from modify_access_token import modify_access_token
-from utils import calculate_client_id
+from utils import calculate_client_id, set_session_data
 
 
 class NepseSession:
@@ -43,25 +42,8 @@ class NepseSession:
 
         """
 
-        data = await get_access_and_refresh_token()
-
-        self.refresh_token = data.get("refreshToken")
-
-        self.access_tokens = [
-            data.get("salt1"),
-            data.get("salt2"),
-            data.get("salt3"),
-            data.get("salt4"),
-            data.get("salt5"),
-        ]
-
-        # update the access token sent by server with the wasm file
-        original_access_token = data.get("accessToken")
-        updated_access_token = modify_access_token(
-            original_access_token=original_access_token,
-            salt_values=self.access_tokens,
-        )
-        self.access_token = updated_access_token
+        data: TokenResponse = await get_access_and_refresh_token()
+        set_session_data(self, data)
 
     async def set_market_id(self) -> None:
         """
