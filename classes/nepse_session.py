@@ -9,6 +9,7 @@ from fetch_handlers import (
     fetch_stock_data,
     get_access_and_refresh_token,
     get_market_open_info,
+    refresh_access_token,
 )
 from modify_access_token import modify_access_token
 from utils import calculate_client_id, set_session_data
@@ -109,3 +110,26 @@ class NepseSession:
         )
 
         return data
+
+    async def refresh_session(self):
+        """
+        Calls the set_access_and_refresh_token() if access_token is none,
+        or refeches the session data if access_token is expired/invalid.
+
+        Raises:
+            AccessTokenFetchError : If it fails to fetch the access token,refresh token and salt values
+            InvalidServerResponseError : If the Nepse responded a non json data on 200 status.
+
+            httpx.HTTPStatusError : If the Nepse responds with status code 4xx or 5xx.
+
+
+        """
+        if self.access_token is None or self.refresh_token is None:
+            await self.set_access_and_refresh_token()
+
+        else:
+            data: TokenResponse = await refresh_access_token(
+                access_token=self.access_token, refresh_token=self.refresh_token
+            )
+
+            set_session_data(self, data=data)
