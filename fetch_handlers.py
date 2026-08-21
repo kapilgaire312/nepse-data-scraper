@@ -146,3 +146,34 @@ async def fetch_stock_data(
     except Exception as e:
         print("error coccures", e)
         raise
+
+
+async def refresh_access_token(access_token: str, refresh_token: str):
+    endpoint = "https://www.nepalstock.com/api/authenticate/refresh-token"
+
+    try:
+        async with httpx.AsyncClient() as client:
+            full_headers = get_full_headers(
+                default_headers=default_headers, access_token=access_token
+            )
+
+            payload = {"refreshToken": refresh_token}
+
+            res = await client.post(url=endpoint, headers=full_headers, json=payload)
+
+            res.raise_for_status()
+
+            try:
+                data = res.json()
+                return data
+
+            except ValueError:
+                print(res.text)
+                raise InvalidServerResponseError()
+
+    except InvalidServerResponseError:
+        raise
+
+    except Exception:
+        print("error occured")
+        raise
