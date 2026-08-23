@@ -1,5 +1,9 @@
-from classes.nepse_session import NepseSession
+from typing import TYPE_CHECKING
+
 from exceptions import AccessTokenInvalidError
+
+if TYPE_CHECKING:
+    from classes.nepse_session import NepseSession
 
 
 def refetch_on_unauthorized(func):
