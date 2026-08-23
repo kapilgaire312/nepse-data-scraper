@@ -1,6 +1,7 @@
 from datetime import date
 
 from classes.token_response import TokenResponse
+from decorators.refetch_on_unauthorized import refetch_on_unauthorized
 from exceptions import (
     AccessTokenInvalidError,
     MarketIdInvalidError,
@@ -11,7 +12,6 @@ from fetch_handlers import (
     get_market_open_info,
     refresh_access_token,
 )
-from modify_access_token import modify_access_token
 from utils import calculate_client_id, set_session_data
 
 
@@ -46,6 +46,7 @@ class NepseSession:
         data: TokenResponse = await get_access_and_refresh_token()
         set_session_data(self, data)
 
+    @refetch_on_unauthorized
     async def set_market_id(self) -> None:
         """
         Fetches market-open info and sets self.market_id.
@@ -82,6 +83,7 @@ class NepseSession:
             market_id=self.market_id, access_tokens=self.access_tokens, day=day
         )
 
+    @refetch_on_unauthorized
     async def get_stocks_data(self, size, offset, market_date) -> list[dict]:
         """
         Fetches the list of stock data.

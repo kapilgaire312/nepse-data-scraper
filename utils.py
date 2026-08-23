@@ -1,7 +1,13 @@
-from classes.nepse_session import NepseSession
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from classes.token_response import TokenResponse
 from dummy_data_arr import dummyData
 from modify_access_token import modify_access_token
+
+if TYPE_CHECKING:
+    from classes.nepse_session import NepseSession
 
 
 def get_full_headers(default_headers, access_token):
