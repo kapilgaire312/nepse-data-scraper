@@ -1,3 +1,4 @@
+import asyncio
 from datetime import date
 
 from classes.token_response import TokenResponse
@@ -32,6 +33,9 @@ class NepseSession:
         # id returned byr market_open_endpoint,
         # used to calculate the client_id
         self.market_id: int | None = None
+
+        # initialize the lock
+        self._lock: asyncio.Lock = asyncio.Lock()
 
     async def set_access_and_refresh_token(self) -> None:
         """
@@ -126,12 +130,14 @@ class NepseSession:
 
 
         """
-        if self.access_token is None or self.refresh_token is None:
-            await self.set_access_and_refresh_token()
 
-        else:
-            data: TokenResponse = await refresh_access_token(
-                access_token=self.access_token, refresh_token=self.refresh_token
-            )
+        async with self._lock:
+            if self.access_token is None or self.refresh_token is None:
+                await self.set_access_and_refresh_token()
 
-            set_session_data(self, data=data)
+            else:
+                data: TokenResponse = await refresh_access_token(
+                    access_token=self.access_token, refresh_token=self.refresh_token
+                )
+
+                set_session_data(self, data=data)
