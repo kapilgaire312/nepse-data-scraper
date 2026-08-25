@@ -1,12 +1,12 @@
 import httpx
 
-from classes.token_response import TokenResponse
-from exceptions import (
+from nepse_scraper.classes.token_response import TokenResponse
+from nepse_scraper.exceptions import (
     AccessTokenFetchError,
     AccessTokenInvalidError,
     InvalidServerResponseError,
 )
-from utils import get_full_headers
+from nepse_scraper.utils import get_full_headers
 
 default_headers = {
     "Accept": "application/json, text/plain, */*",

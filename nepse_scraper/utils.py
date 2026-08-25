@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from classes.token_response import TokenResponse
-from dummy_data_arr import dummyData
-from modify_access_token import modify_access_token
+from nepse_scraper.classes.token_response import TokenResponse
+from nepse_scraper.dummy_data_arr import dummyData
+from nepse_scraper.modify_access_token import modify_access_token
 
 if TYPE_CHECKING:
     from classes.nepse_session import NepseSession

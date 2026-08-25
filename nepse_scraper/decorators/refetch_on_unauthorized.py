@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from exceptions import AccessTokenInvalidError
+from nepse_scraper.exceptions import AccessTokenInvalidError
 
 if TYPE_CHECKING:
     from classes.nepse_session import NepseSession

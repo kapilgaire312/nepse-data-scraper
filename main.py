@@ -1,6 +1,6 @@
 import asyncio
 
-from classes.nepse_session import NepseSession
+from nepse_scraper.classes.nepse_session import NepseSession
 
 
 # get_market_open_info()

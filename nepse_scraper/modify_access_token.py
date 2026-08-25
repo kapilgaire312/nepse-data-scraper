@@ -10,7 +10,7 @@ def modify_access_token(original_access_token: str, salt_values: list[int]) -> s
     store = Store(engine)
 
     # compile the wasm file
-    module = Module.from_file(engine, "css.wasm")
+    module = Module.from_file(engine, "nepse_scraper/css.wasm")
 
     # Instantiate the model
 
